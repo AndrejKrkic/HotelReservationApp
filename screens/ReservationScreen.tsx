@@ -16,6 +16,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // Types
 
 type ReservationRouteProp = RouteProp<RootStackParamList, 'Reservation'>;
@@ -74,10 +75,11 @@ export default function ReservationScreen() {
       guestNames: guests.map((g) => g.name || ''),
     };
 
+    const token = await AsyncStorage.getItem('token');
     try {
       const response = await fetch('http://192.168.0.24:5109/api/Reservations/calculate-price', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, },
         body: JSON.stringify(payload),
       });
 
@@ -102,11 +104,11 @@ export default function ReservationScreen() {
       promoCode,
       guestNames: guests.map((g) => g.name || ''),
     };
-
+  const token = await AsyncStorage.getItem('token');
     try {
       const response = await fetch('http://192.168.0.24:5109/api/Reservations/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`,},
         body: JSON.stringify(payload),
       });
 
