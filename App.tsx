@@ -7,6 +7,8 @@ import ReservationScreen from './screens/ReservationScreen';
 import ReservationConfirmation from './screens/ReservationConfirmation';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import MyReservationsScreen from './screens/MyReservationsScreen';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -18,12 +20,14 @@ export type RootStackParamList = {
   };
    Login: undefined;
   Register: undefined;
+  MyReservations: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+    <PaperProvider>
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Hotel Rooms' }} />
@@ -31,8 +35,10 @@ export default function App() {
         <Stack.Screen name="ReservationConfirmation" component={ReservationConfirmation} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="MyReservations" component={MyReservationsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+    </PaperProvider>
   );
 }
 

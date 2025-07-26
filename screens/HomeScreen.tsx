@@ -1,31 +1,13 @@
-// import { View, Text, StyleSheet } from 'react-native';
-
-// export default function HomeScreen() {
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>Welcome to Hotel Booking App</Text>
-//       <Text>Select a room to begin your reservation.</Text>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     padding: 20,
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     backgroundColor: '#fff',
-//   },
-//   title: {
-//     fontSize: 22,
-//     fontWeight: 'bold',
-//     marginBottom: 10,
-//   },
-// });
-
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  SafeAreaView,
+} from 'react-native';
+import { Menu, IconButton } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 import { getRooms } from '../services/roomService';
 import RoomCard from '../components/RoomCard';
 
@@ -40,15 +22,43 @@ interface Room {
 
 export default function HomeScreen() {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     getRooms().then(setRooms).catch(console.error);
   }, []);
 
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
+
+  const goToMyReservations = () => {
+    closeMenu();
+    navigation.navigate('MyReservations' as never); // Type assertion for navigation
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* Dropdown meni */}
+      <View style={styles.menuContainer}>
+        <Menu
+          visible={menuVisible}
+          onDismiss={closeMenu}
+          anchor={
+            <IconButton icon="dots-vertical" size={24} onPress={openMenu} />
+          }
+        >
+          <Menu.Item
+            onPress={goToMyReservations}
+            title="My Reservations"
+            leadingIcon="calendar"
+          />
+        </Menu>
+      </View>
+
       <Text style={styles.title}>Welcome to FONsion Hotel</Text>
       <Text style={styles.subtitle}>Explore our available rooms:</Text>
+
       <FlatList
         data={rooms}
         keyExtractor={(item) => item.id.toString()}
@@ -77,5 +87,11 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: 16,
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 100,
   },
 });
