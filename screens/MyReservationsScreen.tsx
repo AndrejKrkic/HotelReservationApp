@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'react-native';
 
 // DTOs
 interface Reservation {
@@ -18,6 +19,7 @@ interface Reservation {
   totalPrice: number;
   status: string;
   email: string;
+  documentImageUrl?: string;
 }
 
 interface ReservationWithGuestsDto {
@@ -60,12 +62,11 @@ const MyReservationsScreen: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://192.168.0.24:5109/api/Reservations/cancel`, {
+      const response = await fetch(`http://192.168.0.24:5109/api/Reservations/cancel?reservationId=${reservationId}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ reservationId }),
       });
 
       if (response.ok) {
@@ -115,6 +116,22 @@ const uploadImageToCloudinary = async (uri: string, reservationId: number) => {
 
     if (response.ok) {
       Alert.alert('Check-in uspešan!');
+// Update local state to reflect new status
+  setReservations((prev) =>
+    prev.map((r) =>
+      r.reservation.id === reservationId
+        ? {
+            ...r,
+            reservation: {
+              ...r.reservation,
+              status: 'Checked In',
+              documentImageUrl: json.secure_url, // postavljamo novu sliku
+            },
+          }
+        : r
+    )
+  );
+
     } else {
       Alert.alert('Greška pri check-inu', 'Backend nije prihvatio zahtev.');
     }
@@ -134,7 +151,7 @@ const uploadImageToCloudinary = async (uri: string, reservationId: number) => {
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.5,
+      quality: 0.3,
     });
 
     if (!result.canceled && result.assets?.length) {
@@ -155,21 +172,34 @@ const uploadImageToCloudinary = async (uri: string, reservationId: number) => {
       <Text>Status: {item.reservation.status}</Text>
       <Text>Email: {item.reservation.email}</Text>
 
-      <TouchableOpacity
-  style={styles.checkInButton}
-  onPress={() => handleCheckIn(item.reservation.id)}
->
-  <Text style={styles.checkInButtonText}>Check In</Text>
-</TouchableOpacity>
+      {item.reservation.status === 'Checked In' && item.reservation.documentImageUrl && (
+  <View style={{ marginTop: 10 }}>
+    <Text style={{ marginBottom: 4 }}>Check-in slika:</Text>
+    <Image
+      source={{ uri: item.reservation.documentImageUrl }}
+      style={{ width: '100%', height: 200, borderRadius: 8 }}
+      resizeMode="cover"
+    />
+  </View>
+)}
 
-      {item.reservation.status !== 'Cancelled' && (
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => cancelReservation(item.reservation.id)}
-        >
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      )}
+      {item.reservation.status !== 'Checked In' && item.reservation.status !== 'Cancelled' && (
+  <TouchableOpacity
+    style={styles.checkInButton}
+    onPress={() => handleCheckIn(item.reservation.id)}
+  >
+    <Text style={styles.checkInButtonText}>Check In</Text>
+  </TouchableOpacity>
+)}
+
+      {item.reservation.status !== 'Cancelled' && item.reservation.status !== 'Checked In' && (
+  <TouchableOpacity
+    style={styles.cancelButton}
+    onPress={() => cancelReservation(item.reservation.id)}
+  >
+    <Text style={styles.cancelButtonText}>Cancel</Text>
+  </TouchableOpacity>
+)}
     </View>
   );
 
