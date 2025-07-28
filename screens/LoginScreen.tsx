@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { jwtDecode } from 'jwt-decode';
 
 export default function LoginScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -24,11 +25,22 @@ export default function LoginScreen() {
       }
 
       const data = await response.json();
-      // Sačuvaj token u async storage (ili context)
       await AsyncStorage.setItem('token', data.token);
 
+
+
+
+       const decoded: any = jwtDecode(data.token);
+  const role = decoded['role']; // ili decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+  await AsyncStorage.setItem('role', role);
+
+
+
       Alert.alert('Uspešna prijava');
-      navigation.navigate('Home');
+      navigation.reset({
+  index: 0,
+  routes: [{ name: 'Home' }],
+});
     } catch (error: any) {
       Alert.alert('Greška', error.message);
     }

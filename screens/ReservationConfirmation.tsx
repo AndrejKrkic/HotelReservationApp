@@ -48,7 +48,10 @@ export default function ReservationConfirmation() {
       )}
 
       <View style={{ marginTop: 30 }}>
-        <Button title="Back to Home" onPress={() => navigation.navigate('Home')} />
+        <Button title="Back to Home" onPress={() => navigation.reset({
+    index: 0,
+    routes: [{ name: 'Home' }],
+  })} />
       </View>
     </ScrollView>
   );

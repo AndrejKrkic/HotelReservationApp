@@ -17,6 +17,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Calendar } from 'react-native-calendars';
 // Types
 
 type ReservationRouteProp = RouteProp<RootStackParamList, 'Reservation'>;
@@ -34,7 +35,12 @@ export default function ReservationScreen() {
   const [price, setPrice] = useState<number | null>(null);
   const [room, setRoom] = useState<any>(null);
 
+  const [occupiedDates, setOccupiedDates] = useState<string[]>([]);
+  // const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
+const [endDate, setEndDate] = useState<string | null>(null);
 
+  
   // Fetch room details
   useEffect(() => {
     fetch(`http://192.168.0.24:5109/api/room/${roomId}`)
@@ -45,6 +51,81 @@ export default function ReservationScreen() {
       })
       .catch(console.error);
   }, []);
+
+
+useEffect(() => {
+    fetchOccupiedDates();
+  }, []);
+
+  const fetchOccupiedDates = async () => {
+  try {
+    const token = await AsyncStorage.getItem('token'); // ako koristiš AsyncStorage
+    if (!token) throw new Error('Token nije pronađen');
+
+    const response = await fetch(`http://192.168.0.24:5109/api/Reservations/occupied-dates/${roomId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Greška: ${response.status} - ${text}`);
+    }
+
+    const data = await response.json();
+    setOccupiedDates(data);
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Greška', 'Neuspešno preuzimanje zauzetih datuma');
+  }
+};
+
+  const getMarkedDates = () => {
+    const marked: Record<string, any> = {};
+    occupiedDates.forEach((isoString) => {
+      const dateOnly = isoString.split('T')[0]; // "2025-07-29"
+      marked[dateOnly] = { disabled: true };
+    });
+
+    if (startDate) {
+      marked[startDate] = {
+        ...(marked[startDate] || {}),
+        selected: true,
+        selectedColor: 'blue',
+      };
+    }
+
+     if (endDate) {
+      marked[endDate] = {
+        ...(marked[endDate] || {}),
+        selected: true,
+        selectedColor: 'green',
+      };
+    }
+    return marked;
+  };
+
+const getDisabledDates = (ranges: { from: string; to: string }[]) => {
+  const disabled: Record<string, { disabled: true }> = {};
+
+  ranges.forEach((range) => {
+    const from = new Date(range.from);
+    const to = new Date(range.to);
+    for (
+      let d = new Date(from);
+      d <= to;
+      d.setDate(d.getDate() + 1)
+    ) {
+      const iso = d.toISOString().split('T')[0]; // "YYYY-MM-DD"
+      disabled[iso] = { disabled: true };
+    }
+  });
+
+  return disabled;
+};
 
   const handleGuestChange = (index: number, text: string) => {
     const updated = [...guests];
@@ -68,8 +149,8 @@ export default function ReservationScreen() {
   const calculatePrice = async () => {
     const payload = {
       roomId: room.id,
-      checkInDate: fromDate.toISOString(),
-      checkOutDate: toDate.toISOString(),
+      checkInDate: startDate,
+      checkOutDate: endDate,
       email,
       promoCode,
       guestNames: guests.map((g) => g.name || ''),
@@ -98,8 +179,8 @@ export default function ReservationScreen() {
   const reserveRoom = async () => {
     const payload = {
       roomId: room.id,
-      checkInDate: fromDate.toISOString(),
-      checkOutDate: toDate.toISOString(),
+      checkInDate: startDate,
+      checkOutDate: endDate,
       email,
       promoCode,
       guestNames: guests.map((g) => g.name || ''),
@@ -118,10 +199,18 @@ export default function ReservationScreen() {
       }
 
       const data = await response.json();
-     navigation.navigate('ReservationConfirmation', {
-  confirmation: data, // odgovor sa servera
-  guestNames: guests.map((g) => g.name),
-  email: email,
+     navigation.reset({
+  index: 0,
+  routes: [
+    {
+      name: 'ReservationConfirmation',
+      params: {
+        confirmation: data,
+        guestNames: guests.map((g) => g.name),
+        email: email,
+      },
+    },
+  ],
 });
     } catch (error: any) {
       Alert.alert('Reservation failed', error.message);
@@ -135,22 +224,47 @@ export default function ReservationScreen() {
           <Text style={styles.title}>Reservation for Room #{roomId}</Text>
 
           <Text style={styles.label}>From Date</Text>
-          <DateTimePicker
+          {/* <DateTimePicker
             value={fromDate}
             mode="date"
             display={Platform.OS === 'ios' ? 'inline' : 'default'}
             onChange={(event, selectedDate) => selectedDate && setFromDate(selectedDate)}
             style={{ alignSelf: 'flex-start' }}
-          />
+          /> */}
+           <Calendar
+        onDayPress={(day) => {
+          const dateStr = day.dateString; // "YYYY-MM-DD"
+          if (occupiedDates.includes(dateStr)) {
+            Alert.alert('Zauzeto', 'Ovaj datum je već rezervisan.');
+            return;
+          }
+          setStartDate(dateStr);
+        }}
+        markedDates={getMarkedDates()}
+        disableAllTouchEventsForDisabledDays={true}
+      />
 
           <Text style={styles.label}>To Date</Text>
-          <DateTimePicker
+          {/* <DateTimePicker
             value={toDate}
             mode="date"
             display={Platform.OS === 'ios' ? 'inline' : 'default'}
             onChange={(event, selectedDate) => selectedDate && setToDate(selectedDate)}
             style={{ alignSelf: 'flex-start' }}
-          />
+          /> */}
+
+           <Calendar
+        onDayPress={(day) => {
+          const dateStr = day.dateString; // "YYYY-MM-DD"
+          if (occupiedDates.includes(dateStr)) {
+            Alert.alert('Zauzeto', 'Ovaj datum je već rezervisan.');
+            return;
+          }
+          setEndDate(dateStr);
+        }}
+        markedDates={getMarkedDates()}
+        disableAllTouchEventsForDisabledDays={true}
+      />
 
           <Text style={styles.label}>Email</Text>
           <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" />
