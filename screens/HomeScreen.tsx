@@ -19,7 +19,7 @@ interface Room {
   name: string;
   capacity: number;
   description: string;
-  price: number;
+  pricePerNight: number;
   imageUrl: string;
 }
 
@@ -72,7 +72,7 @@ export default function HomeScreen() {
         </Menu>
       </View>
 
-      <Text style={styles.title}>Welcome to FONsion Hotel</Text>
+      <Text style={styles.title}>Welcome to Fonsion</Text>
       <Text style={styles.subtitle}>Explore our available rooms:</Text>
 
       <FlatList
@@ -96,10 +96,13 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 4,
+     textAlign: 'center', // centriranje teksta
+  color: '#4e8df2',     // tamno plava boja (DarkBlue)
   },
   subtitle: {
     fontSize: 16,
     marginBottom: 10,
+     textAlign: 'center',
   },
   list: {
     paddingBottom: 16,

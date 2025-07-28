@@ -36,7 +36,7 @@ export default function ReservationConfirmation() {
       ))}
 
       <Text style={styles.label}>Total Price:</Text>
-      <Text style={styles.value}>${reservation.totalPrice}</Text>
+      <Text style={styles.value}>{reservation.totalPrice}€</Text>
 
       {promoCode && (
         <>

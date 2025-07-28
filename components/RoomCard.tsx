@@ -9,7 +9,7 @@ interface Props {
     name: string;
     capacity: number;
     description: string;
-    price: number;
+    pricePerNight: number;
     imageUrl: string;
   };
 }
@@ -27,23 +27,11 @@ export default function RoomCard({ room }: Props) {
       <Text style={styles.name}>{room.name}</Text>
       <Text>Capacity: {room.capacity}</Text>
       <Text>{room.description}</Text>
-      <Text style={styles.price}>${room.price} / night</Text>
+      <Text style={styles.price}>{room.pricePerNight}€ / night</Text>
       <Button title="Rezerviši" onPress={handleReserve} />
     </View>
   );
 }
-
-// export default function RoomCard({ room }: Props) {
-//   return (
-//     <View style={styles.card}>
-//       <Image source={{ uri: room.imageUrl }} style={styles.image} />
-//       <Text style={styles.name}>{room.name}</Text>
-//       <Text>Capacity: {room.capacity}</Text>
-//       <Text>{room.description}</Text>
-//       <Text style={styles.price}>${room.price} / night</Text>
-//     </View>
-//   );
-// }
 
 const styles = StyleSheet.create({
   card: {

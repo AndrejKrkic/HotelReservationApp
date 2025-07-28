@@ -27,15 +27,6 @@ export default function LoginScreen() {
       const data = await response.json();
       await AsyncStorage.setItem('token', data.token);
 
-
-
-
-       const decoded: any = jwtDecode(data.token);
-  const role = decoded['role']; // ili decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
-  await AsyncStorage.setItem('role', role);
-
-
-
       Alert.alert('Uspešna prijava');
       navigation.reset({
   index: 0,

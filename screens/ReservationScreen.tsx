@@ -177,6 +177,20 @@ const getDisabledDates = (ranges: { from: string; to: string }[]) => {
   };
 
   const reserveRoom = async () => {
+
+     // Validacija email-a (jednostavan regex)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    Alert.alert('Invalid email', 'Please enter a valid email address.');
+    return;
+  }
+
+  // Validacija da li je bar jedno ime gosta uneto
+  const hasAtLeastOneGuest = guests.some((g) => g.name && g.name.trim() !== '');
+  if (!hasAtLeastOneGuest) {
+    Alert.alert('Missing guest name', 'Please enter at least one guest name.');
+    return;
+  }
     const payload = {
       roomId: room.id,
       checkInDate: startDate,
@@ -290,7 +304,7 @@ const getDisabledDates = (ranges: { from: string; to: string }[]) => {
           <Button title="Calculate Price" onPress={calculatePrice} />
 
           {price !== null && (
-            <Text style={styles.priceText}>Total Price: ${price}</Text>
+            <Text style={styles.priceText}>Total Price: {price}€</Text>
           )}
 
           <View style={{ marginTop: 20 }}>

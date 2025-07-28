@@ -225,13 +225,13 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginTop: 10,
-    backgroundColor: '#cc0000',
+    backgroundColor: '#fff',
     padding: 10,
     borderRadius: 6,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#fff',
+    color: '#cc0000',
     fontWeight: 'bold',
   },
   checkInButton: {
